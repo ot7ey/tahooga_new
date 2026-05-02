@@ -1,0 +1,60 @@
+body {
+    font-family: Arial;
+    text-align:center;
+    background:#eee;
+}
+
+.menu {
+    position:absolute;
+    top:20px;
+    left:20px;
+    font-size:25px;
+    cursor:pointer;
+}
+
+.level {
+    display:inline-block;
+    margin:20px;
+    padding:20px;
+    background:black;
+    color:white;
+    border-radius:50%;
+    cursor:pointer;
+}
+
+.lock {
+    opacity:0.3;
+    cursor:not-allowed;
+}
+
+.grid {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+    width:600px;
+    margin:40px auto;
+}
+
+.card {
+    height:120px;
+    background:black;
+    color:white;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    border-radius:15px;
+    cursor:pointer;
+    transition:0.5s;
+}
+
+.card.flip {
+    background:white;
+    color:black;
+}
+
+.result {
+    background:white;
+    width:300px;
+    margin:50px auto;
+    padding:30px;
+}
