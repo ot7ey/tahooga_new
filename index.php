@@ -1,13 +1,12 @@
 <?php
-session_start();
 
+session_start();
 // RESET TOTAL (buat debug / ulang dari awal)
 if (isset($_GET['reset_all'])) {
     session_destroy();
     header("Location: index.php");
     exit();
 }
-session_start();
 
 // INIT SESSION
 if (!isset($_SESSION['level_done'])) $_SESSION['level_done'] = 0;
@@ -31,6 +30,12 @@ $questions = [
     1 => [
         ["q"=>"Ibukota Indonesia?","a"=>["Jakarta","Bandung","Medan","Bali"],"c"=>0],
         ["q"=>"2+2=?","a"=>["3","4","5","6"],"c"=>1],
+        ["q"=>"Makanan Khas Papua?","a"=>["Ikan masam","Telor Barendo","Bakmi Aceh","Papeda"],"c"=>3],
+        ["q"=>"Kepala Sekolah SMK Telkom Purwokerto?","a"=>["Bp. Wiwid","Bp. Tata","Bp. Aris","Bp. Nandar"],"c"=>2],
+        ["q"=>"Yang Termasuk Jurusan di Telkom?","a"=>["Teknik Mesin","Tata Boga","Akuntansi","RPL"],"c"=>1],
+        ["q"=>"2+2=?","a"=>["3","4","5","6"],"c"=>1],
+        ["q"=>"Siapa Mantan Justin Bieber","a"=>["Gigi Hadid","Billie Elish","Ariana Grande","Selena Gomez"],"c"=>3],
+        ["q"=>"Ciri khas Presiden kita apa?","a"=>["Gemoy","Garang","Pemalu","Penakut"],"c"=>0],
     ],
 ];
 
