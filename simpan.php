@@ -1,13 +1,13 @@
 <?php
-include 'koneksi.php';
+include "koneksi.php";
+session_start();
 
-$nickname = $_POST['nickname'];
-$skor     = $_POST['skor'];
+$nama = $_SESSION['nama'];
+$nama = $_POST['nama'];
+$skor = $_SESSION['skor'];
 
-$query = "INSERT INTO skor (nickname, skor) 
-          VALUES ('$nickname', '$skor')";
+mysqli_query($conn, "INSERT INTO skor (nama, skor) VALUES ('$nama', '$skor')");
 
-mysqli_query($conn, $query);
-
-header("Location: leaderboard.php");
+echo "Skor berhasil disimpan!";
+session_destroy();
 ?>

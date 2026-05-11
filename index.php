@@ -1,139 +1,62 @@
 <?php
-
 session_start();
-// RESET TOTAL (buat debug / ulang dari awal)
-if (isset($_GET['reset_all'])) {
-    session_destroy();
-    header("Location: index.php");
-    exit();
+include "koneksi.php";
+
+// simpan nama
+if (isset($_POST['nama'])) {
+    $_SESSION['nama'] = $_POST['nama'];
 }
 
-// INIT SESSION
-if (!isset($_SESSION['level_done'])) $_SESSION['level_done'] = 0;
-if (!isset($_SESSION['score'])) $_SESSION['score'] = 0;
-if (!isset($_SESSION['q'])) $_SESSION['q'] = 0;
+// ambil semua soal sekali
+if (!isset($_SESSION['soal_list'])) {
+    $result = mysqli_query($conn, "SELECT * FROM soal");
 
-// SET NICKNAME
-if (isset($_POST['nickname'])) {
-    $_SESSION['nickname'] = $_POST['nickname'];
-}
-
-// START LEVEL
-if (isset($_GET['start_level'])) {
-    $_SESSION['q'] = 0;
-    $_SESSION['score'] = 0;
-    $_SESSION['current_level'] = $_GET['start_level'];
-}
-
-// DATA SOAL (LEVEL 1 CONTOH, TAMBAHIN SENDIRI)
-$questions = [
-    1 => [
-        ["q"=>"Ibukota Indonesia?","a"=>["Jakarta","Bandung","Medan","Bali"],"c"=>0],
-        ["q"=>"2+2=?","a"=>["3","4","5","6"],"c"=>1],
-        ["q"=>"Makanan Khas Papua?","a"=>["Ikan masam","Telor Barendo","Bakmi Aceh","Papeda"],"c"=>3],
-        ["q"=>"Kepala Sekolah SMK Telkom Purwokerto?","a"=>["Bp. Wiwid","Bp. Tata","Bp. Aris","Bp. Nandar"],"c"=>2],
-        ["q"=>"Yang Termasuk Jurusan di Telkom?","a"=>["Teknik Mesin","Tata Boga","Akuntansi","RPL"],"c"=>1],
-        ["q"=>"2+2=?","a"=>["3","4","5","6"],"c"=>1],
-        ["q"=>"Siapa Mantan Justin Bieber","a"=>["Gigi Hadid","Billie Elish","Ariana Grande","Selena Gomez"],"c"=>3],
-        ["q"=>"Ciri khas Presiden kita apa?","a"=>["Gemoy","Garang","Pemalu","Penakut"],"c"=>0],
-    ],
-];
-
-// LEVEL AKTIF
-$level = $_SESSION['current_level'] ?? null;
-
-// HANDLE JAWABAN
-if (isset($_POST['jawaban'])) {
-    $data = $questions[$level][$_SESSION['q']];
-    if ($_POST['jawaban'] == $data['c']) {
-        $_SESSION['score'] += 10;
+    $soal_list = [];
+    while ($row = mysqli_fetch_assoc($result)) {
+        $soal_list[] = $row;
     }
-    $_SESSION['q']++;
+
+    $_SESSION['soal_list'] = $soal_list;
+    $_SESSION['no_soal'] = 0;
+    $_SESSION['skor'] = 0;
+    $_SESSION['benar'] = 0;
+    $_SESSION['salah'] = 0;
 }
 
-// CEK SELESAI
-$done = false;
-if ($level && $_SESSION['q'] >= count($questions[$level])) {
-    $done = true;
-    $_SESSION['level_done'] = max($_SESSION['level_done'], $level);
+// cek kalau soal sudah habis
+if ($_SESSION['no_soal'] >= count($_SESSION['soal_list'])) {
+    header("Location: hasil.php");
+    exit;
 }
+
+// ambil soal sekarang
+$no = $_SESSION['no_soal'];
+$soal = $_SESSION['soal_list'][$no];
+
+// simpan jawaban benar
+$_SESSION['jawaban_benar'] = $soal['jawaban_benar'];
 ?>
 
 <!DOCTYPE html>
 <html>
 <head>
-<title>TahooGa</title>
-<link rel="stylesheet" href="style.css">
-<script src="script.js"></script>
+    <title>Kuis</title>
 </head>
-
 <body>
 
-<div class="menu" onclick="location='?home=1'">☰</div>
+<h3>Player: <?= $_SESSION['nama']; ?></h3>
 
-<audio id="benar" src="benar.mp3"></audio>
-<audio id="salah" src="salah.mp3"></audio>
+<h3>Soal <?= $no + 1; ?></h3>
+<p><?= $soal['soal']; ?></p>
 
-<?php if (!isset($_SESSION['nickname'])): ?>
+<form action="cek.php" method="POST">
+    <input type="radio" name="jawaban" value="A"> <?= $soal['jawaban1']; ?><br>
+    <input type="radio" name="jawaban" value="B"> <?= $soal['jawaban2']; ?><br>
+    <input type="radio" name="jawaban" value="C"> <?= $soal['jawaban3']; ?><br>
+    <input type="radio" name="jawaban" value="D"> <?= $soal['jawaban4']; ?><br><br>
 
-<h2>Masukkan Nickname</h2>
-<form method="POST">
-<input type="text" name="nickname" required>
-<button type="submit">Start</button>
+    <button type="submit">Jawab</button>
 </form>
-
-<?php elseif (!isset($_GET['start_level'])): ?>
-
-<!-- HOME -->
-<h2>Halo <?= $_SESSION['nickname']; ?></h2>
-
-<div class="level" onclick="location='?start_level=1'">Level 1</div>
-
-<div class="level <?= $_SESSION['level_done']<1?'lock':'' ?>"
-onclick="<?= $_SESSION['level_done']<1?"alert('anda harus menyelesaikan level 1 dahulu')":"location='?start_level=2'" ?>">
-Level 2
-</div>
-
-<div class="level <?= $_SESSION['level_done']<2?'lock':'' ?>"
-onclick="<?= $_SESSION['level_done']<2?"alert('anda harus menyelesaikan level 2 dahulu')":"location='?start_level=3'" ?>">
-Level 3
-</div>
-
-<?php else: ?>
-
-<!-- LEVEL -->
-<?php if (!$done): 
-$data = $questions[$level][$_SESSION['q']];
-?>
-
-<h2><?= $data['q']; ?></h2>
-
-<form method="POST" id="form">
-<input type="hidden" name="jawaban" id="jawaban">
-
-<div class="grid">
-<?php foreach($data['a'] as $i=>$opsi): ?>
-<div class="card" onclick="jawab(this,<?= $i ?>,<?= $i==$data['c']?'true':'false' ?>)">
-<?= $opsi ?>
-</div>
-<?php endforeach; ?>
-</div>
-</form>
-
-<?php else: ?>
-
-<!-- RESULT -->
-<div class="result">
-<h2>Level <?= $level ?> Selesai</h2>
-<h1><?= $_SESSION['score']; ?></h1>
-
-<button onclick="location='?home=1'">Home</button>
-<button onclick="location='?start_level=<?= $level+1 ?>'">Next</button>
-</div>
-
-<?php endif; ?>
-
-<?php endif; ?>
 
 </body>
 </html>
